@@ -1,0 +1,148 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 24
+    buildToolsVersion "24.0.2"
+
+    defaultConfig {
+        applicationId "com.demo.zk.mynews"
+        minSdkVersion 16
+        targetSdkVersion 24
+        versionCode 1
+        versionName "1.0"
+    }
+
+    signingConfigs {
+        demo {
+            storeFile file("../mykey.jks")
+            storePassword "123456"
+            keyAlias "key123456"
+            keyPassword "123456"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.demo
+        }
+        debug {
+            applicationIdSuffix ".debug"
+            signingConfig signingConfigs.demo
+        }
+    }
+
+    //修改生成的apk名字
+    applicationVariants.all { variant ->
+
+        if (variant.buildType.name.equals('release') || variant.buildType.name.equals('debug')) {
+            variant.outputs.each { output ->
+                def appName = 'MyNews'
+                def oldFile = output.outputFile
+                def buildName = ''
+
+                variant.productFlavors.each { product ->
+                    buildName = product.name
+                }
+
+                def releaseApkName = appName + '-' + defaultConfig.versionName + "-" + variant.buildType.name + "-" + buildName + '.apk'
+                output.outputFile = new File(oldFile.parent, releaseApkName)
+            }
+        }
+    }
+
+    // 解决butterknife和lombok的冲突：Duplicate files copied in APK META-INF/services/javax.annotation.processing.Processor
+    packagingOptions {
+        exclude 'META-INF/services/javax.annotation.processing.Processor'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+    }
+
+    sourceSets {
+        main {
+            java.srcDirs = ['src/main/java', 'src/main/java-gen']
+        }
+    }
+
+    productFlavors {
+        all32 { minSdkVersion 12 }
+        all64 { minSdkVersion 21 }
+        armv5 { minSdkVersion 12 }
+        armv7a { minSdkVersion 12 }
+        arm64 { minSdkVersion 21 }
+        x86 { minSdkVersion 12 }
+        x86_64 { minSdkVersion 21 }
+    }
+
+}
+
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    testCompile 'junit:junit:4.12'
+    compile 'com.android.support:appcompat-v7:24.2.0'
+    compile 'com.android.support:design:24.2.0'
+    compile 'com.android.support:support-v4:24.2.0'
+    compile 'com.android.support:cardview-v7:24.2.0'
+    //注解支持
+    compile 'com.android.support:support-annotations:24.2.0'
+
+    //内存泄漏检测
+    debugCompile 'com.squareup.leakcanary:leakcanary-android:1.4-beta2'
+    releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.4-beta2'
+
+    compile 'io.reactivex:rxandroid:1.2.1'
+    compile 'io.reactivex:rxjava:1.1.9'
+    compile 'com.github.bumptech.glide:glide:3.7.0'
+    // 使用okhttp3加载图片
+    compile 'com.github.bumptech.glide:okhttp3-integration:1.4.0@aar'
+    compile 'com.squareup.retrofit2:retrofit:2.1.0'
+    compile 'com.squareup.retrofit2:converter-jackson:2.1.0'
+    compile 'com.squareup.retrofit2:adapter-rxjava:2.1.0'
+    compile 'com.squareup.okhttp3:okhttp:3.4.1'
+    compile 'com.squareup.okhttp3:logging-interceptor:3.4.1'
+
+    //ORM层
+    compile 'de.greenrobot:greendao:2.1.0'
+
+    //富文本显示控件：RichText https://github.com/zzhoujay/RichText
+    //支持Html格式文本  支持图片点击事件 链接自动回调
+    compile 'zhou.widget:richtext:1.0.4'
+    //PhotoView是一个开源的图片查看库，可以实现图片的浏览，手势放大缩小等操作
+    //https://github.com/chrisbanes/PhotoView
+    compile 'com.commit451:PhotoView:1.2.4'
+
+    compile 'com.github.zhaokaiqiang.klog:library:1.5.0'
+    compile('com.afollestad.material-dialogs:core:0.9.0.1') {
+        transitive = true
+    }
+    compile project(':changeskin')
+
+    all32Compile 'tv.danmaku.ijk.media:ijkplayer-armv5:0.6.2'
+    all32Compile 'tv.danmaku.ijk.media:ijkplayer-armv7a:0.6.2'
+    all32Compile 'tv.danmaku.ijk.media:ijkplayer-x86:0.6.2'
+    all64Compile 'tv.danmaku.ijk.media:ijkplayer-armv5:0.6.2'
+    all64Compile 'tv.danmaku.ijk.media:ijkplayer-armv7a:0.6.2'
+    all64Compile 'tv.danmaku.ijk.media:ijkplayer-arm64:0.6.2'
+    all64Compile 'tv.danmaku.ijk.media:ijkplayer-x86:0.6.2'
+    all64Compile 'tv.danmaku.ijk.media:ijkplayer-x86_64:0.6.2'
+    armv5Compile 'tv.danmaku.ijk.media:ijkplayer-armv5:0.6.2'
+    armv7aCompile 'tv.danmaku.ijk.media:ijkplayer-armv7a:0.6.2'
+    arm64Compile 'tv.danmaku.ijk.media:ijkplayer-arm64:0.6.2'
+    x86Compile 'tv.danmaku.ijk.media:ijkplayer-x86:0.6.2'
+    x86_64Compile 'tv.danmaku.ijk.media:ijkplayer-x86_64:0.6.2'
+
+    // required, enough for most devices.
+    compile 'tv.danmaku.ijk.media:ijkplayer-java:0.6.2'
+
+    // ExoPlayer as IMediaPlayer: optional, experimental
+    compile 'tv.danmaku.ijk.media:ijkplayer-exo:0.6.2'
+}
